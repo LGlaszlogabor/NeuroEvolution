@@ -19,7 +19,7 @@ public class DisplayPanel extends JPanel implements InputListener, KeyListener {
     public DisplayPanel(){
         setLayout(null);
         setBounds(0,0,680,680);
-        addKeyListener(this);
+       // addKeyListener(this);
         reader = new CommunicationThread();
         reader.addInputListener(this);
         reader.start();
@@ -91,7 +91,7 @@ public class DisplayPanel extends JPanel implements InputListener, KeyListener {
         if(key == KeyEvent.VK_X){
             reader.setOutput(4);
         }
-        System.out.print(key);
+
     }
 
     @Override

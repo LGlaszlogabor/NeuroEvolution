@@ -7,7 +7,7 @@ import java.util.List;
  * Created by Laszlo Gabor on 05.01.2017.
  */
 public class Neuron {
-    private List<Neuron> incoming;
+    private List<Gene> incoming;
     private double value;
 
     public Neuron(){
@@ -19,7 +19,11 @@ public class Neuron {
         return value;
     }
 
-    public void addIncomingNeuron(Neuron n){
-        incoming.add(n);
+    public List<Gene> getIncoming(){
+        return incoming;
+    }
+
+    public void addIncomingNeuron(Gene g){
+        incoming.add(g);
     }
 }

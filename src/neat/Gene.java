@@ -4,21 +4,21 @@ package neat;
  * Created by Laszlo Gabor on 05.01.2017.
  */
 public class Gene {
-    private double into;
-    private double out;
+    private int into;
+    private int out;
     private double weight;
     private boolean enabled;
     private double innovation;
 
     public Gene(){
-        into = 0d;
-        out = 0d;
+        into = 0;
+        out = 0;
         weight = 0d;
         enabled = true;
         innovation = 0d;
     }
 
-    public Gene copy(){
+    public Gene copy() {
         Gene cp = new Gene();
         cp.setInto(into);
         cp.setOut(out);
@@ -28,19 +28,19 @@ public class Gene {
         return cp;
     }
 
-    public double getInto() {
+    public int getInto() {
         return into;
     }
 
-    public void setInto(double into) {
+    public void setInto(int into) {
         this.into = into;
     }
 
-    public double getOut() {
+    public int getOut() {
         return out;
     }
 
-    public void setOut(double out) {
+    public void setOut(int out) {
         this.out = out;
     }
 

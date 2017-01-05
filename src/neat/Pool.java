@@ -1,5 +1,7 @@
 package neat;
 
+import util.Constants;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,7 +12,7 @@ import java.util.List;
 public class Pool {
     private List<Species> species;
     private int generation;
-    private List<Integer> innovation;
+    private static int innovation;
     private int currentSpecies;
     private int currentGenome;
     private int currentFrame;
@@ -23,8 +25,19 @@ public class Pool {
         currentGenome = 1;
         currentFrame = 0;
         maxFitness = 0;
-        Integer[] arr = {1, 2, 3, 4, 5, 6, 7, 8};
-        innovation = Arrays.asList(arr);
+        innovation = 8;
+    }
+
+    public void initializePool(){
+        for(int i = 0; i< Constants.POPULATION ;i++){
+            addToSpecies(Genome.BasicGenome());
+        }
+
+        initializeRun();
+    }
+
+    public static int getInnovation(){
+        return ++innovation;
     }
 
     public List<Species> getSpecies() {
@@ -41,14 +54,6 @@ public class Pool {
 
     public void setGeneration(int generation) {
         this.generation = generation;
-    }
-
-    public List<Integer> getInnovation() {
-        return innovation;
-    }
-
-    public void setInnovation(List<Integer> innovation) {
-        this.innovation = innovation;
     }
 
     public int getCurrentSpecies() {
