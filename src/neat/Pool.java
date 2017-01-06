@@ -26,12 +26,11 @@ public class Pool {
         innovation = 8;
     }
 
-    public void initializePool(){
+    public void initializePool(String inputs){
         for(int i = 0; i< Constants.POPULATION ;i++){
             addToSpecies(Genome.BasicGenome());
         }
-
-        initializeRun();
+        initializeRun(inputs);
     }
 
     private void addToSpecies(Genome g){
@@ -49,19 +48,19 @@ public class Pool {
         }
     }
 
-    private void initializeRun(){
+    public void initializeRun(String inputs){
         currentFrame = 0;
        // timeout = Constants.TIMEOUT;
         Genome g = species.get(currentSpecies).getGenomes().get(currentGenome);
         g.generateNetwork();
-        evaluateCurrent(g);
+        evaluateCurrent(inputs);
     }
 
-    private void evaluateCurrent(Genome g){
-        String result = species.get(currentSpecies).getGenomes().get(currentGenome).evaluateNetwork(inputs); // todo communication here
+    public String evaluateCurrent(String inputs){
+        return species.get(currentSpecies).getGenomes().get(currentGenome).evaluateNetwork(inputs); // todo communication here
     }
 
-    private void nextGenome(){
+    public void nextGenome(){
         currentGenome++;
         if(currentGenome > species.get(currentSpecies).getGenomes().size()){
             currentGenome = 1;
@@ -120,7 +119,7 @@ public class Pool {
         generation++;
     }
 
-    private boolean fitnessAreadyMeasured(){
+    public boolean fitnessAreadyMeasured(){
         return species.get(currentSpecies).getGenomes().get(currentGenome).getFitness() == 0;
     }
 

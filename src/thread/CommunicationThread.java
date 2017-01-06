@@ -2,6 +2,10 @@ package thread;
 
 import event.InputEvent;
 import listener.InputListener;
+import neat.Genome;
+import neat.Pool;
+import neat.Species;
+import util.Constants;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -40,13 +44,76 @@ public class CommunicationThread extends Thread {
             reader = new BufferedReader(new InputStreamReader(in));
             writer = new PrintWriter(new OutputStreamWriter(out));
             String input = "";
+
+            Pool pool = new Pool();
+            pool.initializePool("");
+            int timeout = Constants.TIMEOUT;
+            Species species;
+            Genome genome;
+            int rightmost = 0;
+            String[] parts;
+            int marioX;
+            double fitness;
+            int measured;
+            int total;
             while(!"END".equals(input)){
                 input = reader.readLine();
                 notifyInputEvent(input);
-                System.out.println("Output:" + output);
-                writer.println(output);
-                writer.flush();
-                output = "";
+
+                species = pool.getSpecies().get(pool.getCurrentSpecies());
+                genome = species.getGenomes().get(pool.getCurrentGenome());
+
+                parts = input.split(" ");
+
+                if(pool.getCurrentFrame() %5 == 0){
+                    output = pool.evaluateCurrent(input.substring(parts[0].length() + 1));
+                }
+
+
+                marioX = Integer.parseInt(parts[0]);
+                if (marioX > rightmost) {
+                    rightmost = marioX;
+                    timeout = Constants.TIMEOUT;
+                }
+                timeout--;
+                int timeoutBonus = pool.getCurrentFrame() / 4;
+                if(timeout + timeoutBonus <= 0){ // ha lejart egy run
+                    fitness = rightmost - pool.getCurrentFrame() / 2;
+                    if(rightmost > 4816) fitness += 1000;
+                    if(fitness == 0) fitness = -1;
+                    genome.setFitness(fitness);
+                    if(fitness > pool.getMaxFitness()){
+                        pool.setMaxFitness(fitness);
+                    }
+                    pool.setCurrentSpecies(1);
+                    pool.setCurrentGenome(1);
+                    while(pool.fitnessAreadyMeasured()){
+                       pool.nextGenome();
+                    }
+                    pool.initializeRun("");
+                }
+                measured = 0;
+                total = 0;
+                for(Species s : pool.getSpecies()){
+                    for(Genome g : s.getGenomes()){
+                        total++;
+                        if(g.getFitness() != 0){
+                            measured++;
+                        }
+                    }
+                }
+                pool.setCurrentFrame(pool.getCurrentFrame() + 1);
+
+                if(timeout + timeoutBonus <= 0) {
+                    writer.println("Initialize");
+                    writer.flush();
+                    output = "";
+                }
+                else {
+                    writer.println(output);
+                    writer.flush();
+                    output = "";
+                }
             }
             reader.close();
             writer.close();

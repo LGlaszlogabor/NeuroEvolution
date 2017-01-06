@@ -1,4 +1,5 @@
 if gameinfo.getromname() == "Super Mario World (USA)" then
+	Filename = "save.state"
 	ButtonNames = {
 		"A",
 		"B",
@@ -173,6 +174,7 @@ while true do
 	toSend = ""
 
 	inputs = getInputs()
+	toSend = toSend .. memory.read_s16_le(0x94) --x
 	for i = 1,#inputs do
 		toSend  = toSend .. inputs[i] .. " "
 	end
@@ -180,18 +182,21 @@ while true do
 	
 	local response, receive_status = sock:receive()
 	
-	for token in string.gmatch(response, "[^%s]+") do
-		controller["P1 " .. ButtonNames[tonumber(token)]] = true
+	if response == "Initialize" then
+		savestate.load(Filename);
+	else
+		for token in string.gmatch(response, "[^%s]+") do
+			controller["P1 " .. ButtonNames[tonumber(token)]] = true
+		end
+		if controller["P1 Left"] and controller["P1 Right"] then
+			controller["P1 Left"] = false
+			controller["P1 Right"] = false
+		end
+		if controller["P1 Up"] and controller["P1 Down"] then
+			controller["P1 Up"] = false
+			controller["P1 Down"] = false
+		end
+		joypad.set(controller)
+		emu.frameadvance();
 	end
-	if controller["P1 Left"] and controller["P1 Right"] then
-		controller["P1 Left"] = false
-		controller["P1 Right"] = false
-	end
-	if controller["P1 Up"] and controller["P1 Down"] then
-		controller["P1 Up"] = false
-		controller["P1 Down"] = false
-	end
-	
-	joypad.set(controller)
-	emu.frameadvance();
 end
