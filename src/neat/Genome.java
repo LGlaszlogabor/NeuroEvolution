@@ -59,7 +59,7 @@ public class Genome {
     }
 
 
-    private void mutate(){
+    public void mutate(){
         for (Map.Entry<String, Double> entry : mutationRates.entrySet()) {
             int random = (int )(Math.random() * 51 + 1);
             if (random % 2 == 0) {
@@ -241,6 +241,122 @@ public class Genome {
                 }
             }
         }
+    }
+
+    public String evaluateNetwork(String inputs){
+        String[] parts = inputs.split(" ");
+        for(int i=1;i<Constants.INPUTS + 1;i++){
+            network.get(i).setValue(Integer.parseInt(parts[i-1]));
+        }
+
+        Gene incoming;
+        Neuron other;
+        double sum;
+        for(Neuron n : network.values()){
+            sum = 0;
+            for(int j = 1; j < n.getIncoming().size() ; j++){
+                incoming = n.getIncoming().get(j);
+                other = network.get(incoming.getInto());
+                sum += incoming.getWeight() * other.getValue();
+            }
+
+            if(n.getIncoming().size() > 0){
+                n.setValue(sigmoid(sum));
+            }
+        }
+
+        String result = "";
+        for(int o = 1; o <= Constants.OUTPUTS ; o++){
+            if(network.get(Constants.MAX_NODES + o).getValue() > 0){
+                result += o + " ";
+            }
+        }
+        return result;
+    }
+
+    private double sigmoid(double x){
+        double result = 2;
+        result /= (1 + Math.exp(-4.9*x));
+        result -= 1;
+        return result;
+    }
+
+    public static Genome crossover(Genome g1, Genome g2){
+        if(g2.getFitness() > g1.getFitness()){
+            Genome tmp = g1;
+            g1 = g2;
+            g2 = tmp;
+        }
+        Genome child = new Genome();
+        HashMap<Double, Gene> innovations = new HashMap<>();
+        for(Gene g : g2.getGenes()){
+            innovations.put(g.getInnovation(), g);
+        }
+        Gene gene2;
+        for(Gene g : g1.getGenes()){
+            gene2 = innovations.get(g.getInnovation());
+            if(innovations.containsKey(g.getInnovation()) && Math.random() < 0.5 && gene2.isEnabled()){
+                child.getGenes().add(gene2.copy());
+            }
+            else{
+                child.getGenes().add(g.copy());
+            }
+        }
+
+        child.setMaxNeuron(Math.max(g1.getMaxNeuron(), g2.getMaxNeuron()));
+        for(String s : g1.getMutationRates().keySet()){
+            child.getMutationRates().replace(s,g1.getMutationRates().get(s));
+        }
+
+        return child;
+    }
+
+    public static double disjoint(List<Gene> genes1, List<Gene> genes2){
+        HashMap<Double, Boolean> i1 = new HashMap<>();
+        for(Gene g : genes1){
+            i1.put(g.getInnovation(), true);
+        }
+
+        HashMap<Double, Boolean> i2 = new HashMap<>();
+        for(Gene g : genes2){
+            i2.put(g.getInnovation(), true);
+        }
+        int disjointGenes = 0;
+        for(Gene g : genes1){
+            if(!i2.get(g.getInnovation())){
+                disjointGenes++;
+            }
+        }
+        for(Gene g : genes2){
+            if(!i1.get(g.getInnovation())){
+                disjointGenes++;
+            }
+        }
+        return disjointGenes / Math.max(genes1.size(), genes2.size());
+    }
+
+    public static double weights(List<Gene> genes1, List<Gene> genes2){
+        HashMap<Double, Gene> i2 = new HashMap<>();
+        for(Gene g : genes2){
+            i2.put(g.getInnovation(), g);
+        }
+        double sum = 0;
+        int coincident = 0;
+        Gene gene2;
+        for(Gene g : genes1){
+            if(i2.containsKey(g.getInnovation())){
+                gene2 = i2.get(g.getInnovation());
+                sum += Math.abs(g.getWeight() - gene2.getWeight());
+                coincident++;
+            }
+        }
+        return sum / coincident;
+    }
+
+    public static boolean sameSpecies(Genome g1, Genome g2){
+        double dd = Constants.DELTA_DISJOINT * disjoint(g1.getGenes(), g2.getGenes());
+        double dw = Constants.DELTA_WEIGHTS * weights(g1.getGenes(), g2.getGenes());
+        return dd + dw < Constants.DELTA_THRESHOLD;
     }
 
     public HashMap<String, Double> getMutationRates() {

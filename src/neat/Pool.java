@@ -2,9 +2,7 @@ package neat;
 
 import util.Constants;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Laszlo Gabor on 05.01.2017.
@@ -34,6 +32,161 @@ public class Pool {
         }
 
         initializeRun();
+    }
+
+    private void addToSpecies(Genome g){
+        boolean foundSpecies = false;
+        for(Species s : species){
+            if(!foundSpecies && Genome.sameSpecies(g, s.getGenomes().get(0))){
+                s.getGenomes().add(g);
+                foundSpecies = true;
+            }
+        }
+        if(!foundSpecies){
+            Species s = new Species();
+            s.getGenomes().add(g);
+            species.add(s);
+        }
+    }
+
+    private void initializeRun(){
+        currentFrame = 0;
+       // timeout = Constants.TIMEOUT;
+        Genome g = species.get(currentSpecies).getGenomes().get(currentGenome);
+        g.generateNetwork();
+        evaluateCurrent(g);
+    }
+
+    private void evaluateCurrent(Genome g){
+        String result = species.get(currentSpecies).getGenomes().get(currentGenome).evaluateNetwork(inputs); // todo communication here
+    }
+
+    private void nextGenome(){
+        currentGenome++;
+        if(currentGenome > species.get(currentSpecies).getGenomes().size()){
+            currentGenome = 1;
+            currentSpecies++;
+            if(currentSpecies > species.size()){
+                newGeneration();
+                currentSpecies = 1;
+            }
+        }
+    }
+
+    private void rankGlobally(){
+        List<Genome> global = new ArrayList<>();
+        for(Species s : species){
+            for(Genome g : s.getGenomes()){
+                global.add(g);
+            }
+        }
+        Comparator<Genome> comparator = new Comparator<Genome>() {
+            @Override
+            public int compare(Genome o1, Genome o2) {
+                return ((Double)o1.getFitness()).compareTo(o2.getFitness());
+            }
+        };
+        Collections.sort(global, comparator);
+        for(int g = 0; g < global.size(); g++){
+            global.get(g).setGlobalRank(g);
+        }
+    }
+
+    public void newGeneration(){
+        cullSpecies(false);
+        rankGlobally();
+        removeStaleSpecies();
+        rankGlobally();
+        for(Species s : species){
+            s.calculateAverageFitness();
+        }
+        removeWeakSpecies();
+        double sum = totalAverageFitness();
+        double breed;
+        List<Genome> children = new ArrayList<>();
+        for(Species s : species){
+            breed = Math.floor(s.getAverageFitness() / sum * Constants.POPULATION) - 1;
+            for(int i = 1; i < breed; i++){
+                children.add(s.breedChild());
+            }
+        }
+        cullSpecies(true);
+        while(children.size() + species.size() < Constants.POPULATION){
+            children.add(species.get((int) (Math.random()*species.size())).breedChild());
+        }
+        for(Genome g : children){
+            addToSpecies(g);
+        }
+        generation++;
+    }
+
+    private boolean fitnessAreadyMeasured(){
+        return species.get(currentSpecies).getGenomes().get(currentGenome).getFitness() == 0;
+    }
+
+    public double totalAverageFitness(){
+        double total = 0;
+        for(Species s : species){
+            total += s.getAverageFitness();
+        }
+        return total;
+    }
+
+    public void cullSpecies(boolean toOne){
+        Comparator<Genome> comparator = new Comparator<Genome>() {
+            @Override
+            public int compare(Genome o1, Genome o2) {
+                return ((Double)o1.getFitness()).compareTo(o2.getFitness());
+            }
+        };
+        double remaining;
+        for(Species s : species){
+            Collections.sort(s.getGenomes(), comparator);
+            remaining = Math.ceil(s.getGenomes().size()/2);
+            if(toOne){
+                remaining = 1;
+            }
+            while(s.getGenomes().size() > remaining){
+                s.getGenomes().remove(0);
+            }
+        }
+    }
+
+    public void removeStaleSpecies(){
+        Comparator<Genome> comparator = new Comparator<Genome>() {
+            @Override
+            public int compare(Genome o1, Genome o2) {
+                return ((Double)o1.getFitness()).compareTo(o2.getFitness());
+            }
+        };
+        List<Species> survived = new ArrayList<>();
+        for(Species s : species){
+            Collections.sort(s.getGenomes(), comparator);
+            if(s.getGenomes().get(1).getFitness() > s.getTopFitness()){
+                s.setTopFitness(s.getGenomes().get(1).getFitness());
+                s.setStaleness(0);
+            }
+            else{
+                s.setStaleness(s.getStaleness() + 1);
+            }
+            if(s.getStaleness() < Constants.STALE_SPECIES || s.getTopFitness() >= maxFitness){
+                survived.add(s);
+            }
+        }
+        species = survived;
+    }
+
+    public void removeWeakSpecies(){
+        List<Species> survived = new ArrayList<>();
+        double sum = totalAverageFitness();
+        double breed;
+        for(Species s : species){
+            breed = Math.floor(s.getAverageFitness() / sum * Constants.POPULATION);
+            if(breed >= 1){
+                survived.add(s);
+            }
+        }
+        species = survived;
     }
 
     public static int getInnovation(){

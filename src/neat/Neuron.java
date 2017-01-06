@@ -19,6 +19,10 @@ public class Neuron {
         return value;
     }
 
+    public void setValue(double value){
+        this.value = value;
+    }
+
     public List<Gene> getIncoming(){
         return incoming;
     }

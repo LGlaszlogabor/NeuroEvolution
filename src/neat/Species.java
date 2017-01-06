@@ -1,5 +1,7 @@
 package neat;
 
+import util.Constants;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +19,30 @@ public class Species {
         staleness = 0;
         genomes = new ArrayList<>();
         averageFitness = 0;
+    }
+
+    public void calculateAverageFitness(){
+        int total = 0;
+        for(Genome g : genomes){
+            total += g.getGlobalRank();
+        }
+        averageFitness = total / genomes.size();
+    }
+
+    public Genome breedChild(){
+        Genome g1, g2, child;
+        if(Math.random() < Constants.CROSSOVER_CHANCE){
+            g1 = genomes.get((int) (Math.random()*genomes.size()));
+            g2 = genomes.get((int) (Math.random()*genomes.size()));
+            child = Genome.crossover(g1, g2);
+        }
+        else{
+            g1 = genomes.get((int) (Math.random()*genomes.size()));
+            child = g1.copy();
+        }
+
+        child.mutate();
+        return child;
     }
 
     public double getTopFitness() {

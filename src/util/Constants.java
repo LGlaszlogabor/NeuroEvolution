@@ -12,6 +12,7 @@ public class Constants {
     public static final double DELTA_THRESHOLD = 1.0;
 
     public static final double PERTIRB_CHANCE = 0.90;
+    public static final double CROSSOVER_CHANCE = 0.75;
     public static final double MUTATE_CONNECTIONS_CHANCE = 0.25;
     public static final double MUTATE_LINK_CHANCE = 2.0;
     public static final double MUTATE_BIAS_CHANCE = 0.4;
@@ -19,6 +20,7 @@ public class Constants {
     public static final double MUTATE_ENABLE_CHANCE = 0.4;
     public static final double MUTATE_DISABLE_CHANCE = 0.2;
     public static final double STEP_SIZE = 0.1;
+    public static final int STALE_SPECIES = 15;
 
     public static final int TIMEOUT = 20;
 
