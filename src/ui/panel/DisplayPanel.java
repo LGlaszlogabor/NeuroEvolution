@@ -2,6 +2,7 @@ package ui.panel;
 
 import event.InputEvent;
 import listener.InputListener;
+import neat.Genome;
 import thread.CommunicationThread;
 
 import javax.swing.*;
@@ -47,6 +48,10 @@ public class DisplayPanel extends JPanel implements InputListener, KeyListener {
                }
             }
         }
+
+    }
+
+    public void paintGenome(Graphics g, Genome genome){
 
     }
 

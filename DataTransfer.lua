@@ -174,7 +174,8 @@ while true do
 	toSend = ""
 
 	inputs = getInputs()
-	toSend = toSend .. memory.read_s16_le(0x94) --x
+	x = memory.read_s16_le(0x94)
+	toSend = toSend .. x .. " " --x
 	for i = 1,#inputs do
 		toSend  = toSend .. inputs[i] .. " "
 	end
@@ -197,6 +198,6 @@ while true do
 			controller["P1 Down"] = false
 		end
 		joypad.set(controller)
-		emu.frameadvance();
 	end
+	emu.frameadvance();
 end

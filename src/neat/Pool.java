@@ -19,11 +19,11 @@ public class Pool {
     public Pool(){
         species = new ArrayList<>();
         generation = 0;
-        currentSpecies = 1;
-        currentGenome = 1;
+        currentSpecies = 0;
+        currentGenome = 0;
         currentFrame = 0;
         maxFitness = 0;
-        innovation = 8;
+        innovation = Constants.OUTPUTS;
     }
 
     public void initializePool(String inputs){
@@ -50,24 +50,23 @@ public class Pool {
 
     public void initializeRun(String inputs){
         currentFrame = 0;
-       // timeout = Constants.TIMEOUT;
         Genome g = species.get(currentSpecies).getGenomes().get(currentGenome);
         g.generateNetwork();
         evaluateCurrent(inputs);
     }
 
     public String evaluateCurrent(String inputs){
-        return species.get(currentSpecies).getGenomes().get(currentGenome).evaluateNetwork(inputs); // todo communication here
+        return species.get(currentSpecies).getGenomes().get(currentGenome).evaluateNetwork(inputs);
     }
 
     public void nextGenome(){
         currentGenome++;
-        if(currentGenome > species.get(currentSpecies).getGenomes().size()){
-            currentGenome = 1;
+        if(currentGenome >= species.get(currentSpecies).getGenomes().size()){
+            currentGenome = 0;
             currentSpecies++;
-            if(currentSpecies > species.size()){
+            if(currentSpecies >= species.size()){
                 newGeneration();
-                currentSpecies = 1;
+                currentSpecies = 0;
             }
         }
     }
@@ -105,7 +104,7 @@ public class Pool {
         List<Genome> children = new ArrayList<>();
         for(Species s : species){
             breed = Math.floor(s.getAverageFitness() / sum * Constants.POPULATION) - 1;
-            for(int i = 1; i < breed; i++){
+            for(int i = 0; i < breed; i++){
                 children.add(s.breedChild());
             }
         }
@@ -120,7 +119,7 @@ public class Pool {
     }
 
     public boolean fitnessAreadyMeasured(){
-        return species.get(currentSpecies).getGenomes().get(currentGenome).getFitness() == 0;
+        return species.get(currentSpecies).getGenomes().get(currentGenome).getFitness() != 0;
     }
 
     public double totalAverageFitness(){
@@ -135,7 +134,7 @@ public class Pool {
         Comparator<Genome> comparator = new Comparator<Genome>() {
             @Override
             public int compare(Genome o1, Genome o2) {
-                return ((Double)o1.getFitness()).compareTo(o2.getFitness());
+                return ((Double)o2.getFitness()).compareTo(o1.getFitness());
             }
         };
         double remaining;
@@ -155,14 +154,14 @@ public class Pool {
         Comparator<Genome> comparator = new Comparator<Genome>() {
             @Override
             public int compare(Genome o1, Genome o2) {
-                return ((Double)o1.getFitness()).compareTo(o2.getFitness());
+                return ((Double)o2.getFitness()).compareTo(o1.getFitness());
             }
         };
         List<Species> survived = new ArrayList<>();
         for(Species s : species){
             Collections.sort(s.getGenomes(), comparator);
-            if(s.getGenomes().get(1).getFitness() > s.getTopFitness()){
-                s.setTopFitness(s.getGenomes().get(1).getFitness());
+            if(s.getGenomes().get(0).getFitness() > s.getTopFitness()){
+                s.setTopFitness(s.getGenomes().get(0).getFitness());
                 s.setStaleness(0);
             }
             else{
@@ -189,7 +188,8 @@ public class Pool {
     }
 
     public static int getInnovation(){
-        return ++innovation;
+        innovation++;
+        return innovation;
     }
 
     public List<Species> getSpecies() {

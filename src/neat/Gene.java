@@ -8,14 +8,14 @@ public class Gene {
     private int out;
     private double weight;
     private boolean enabled;
-    private double innovation;
+    private int innovation;
 
     public Gene(){
         into = 0;
         out = 0;
         weight = 0d;
         enabled = true;
-        innovation = 0d;
+        innovation = 0;
     }
 
     public Gene copy() {
@@ -60,11 +60,11 @@ public class Gene {
         this.enabled = enabled;
     }
 
-    public double getInnovation() {
+    public int getInnovation() {
         return innovation;
     }
 
-    public void setInnovation(double innovation) {
+    public void setInnovation(int innovation) {
         this.innovation = innovation;
     }
 }

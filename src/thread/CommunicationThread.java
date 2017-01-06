@@ -46,7 +46,19 @@ public class CommunicationThread extends Thread {
             String input = "";
 
             Pool pool = new Pool();
-            pool.initializePool("");
+            pool.initializePool("0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                "0 0 0 0 0 0 0 0 0 0 0 0 0 ");
             int timeout = Constants.TIMEOUT;
             Species species;
             Genome genome;
@@ -54,6 +66,7 @@ public class CommunicationThread extends Thread {
             String[] parts;
             int marioX;
             double fitness;
+            int timeoutBonus;
             int measured;
             int total;
             while(!"END".equals(input)){
@@ -65,9 +78,10 @@ public class CommunicationThread extends Thread {
 
                 parts = input.split(" ");
 
-                if(pool.getCurrentFrame() %5 == 0){
+                if(pool.getCurrentFrame() % 5== 0){
                     output = pool.evaluateCurrent(input.substring(parts[0].length() + 1));
                 }
+                timeout--;
 
 
                 marioX = Integer.parseInt(parts[0]);
@@ -75,8 +89,12 @@ public class CommunicationThread extends Thread {
                     rightmost = marioX;
                     timeout = Constants.TIMEOUT;
                 }
-                timeout--;
-                int timeoutBonus = pool.getCurrentFrame() / 4;
+
+
+
+
+
+                timeoutBonus = pool.getCurrentFrame() / 4;
                 if(timeout + timeoutBonus <= 0){ // ha lejart egy run
                     fitness = rightmost - pool.getCurrentFrame() / 2;
                     if(rightmost > 4816) fitness += 1000;
@@ -85,12 +103,25 @@ public class CommunicationThread extends Thread {
                     if(fitness > pool.getMaxFitness()){
                         pool.setMaxFitness(fitness);
                     }
-                    pool.setCurrentSpecies(1);
-                    pool.setCurrentGenome(1);
+                    pool.setCurrentSpecies(0);
+                    pool.setCurrentGenome(0);
                     while(pool.fitnessAreadyMeasured()){
                        pool.nextGenome();
                     }
-                    pool.initializeRun("");
+                    pool.initializeRun("0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 ");
+                    rightmost = 0;
                 }
                 measured = 0;
                 total = 0;
@@ -102,18 +133,20 @@ public class CommunicationThread extends Thread {
                         }
                     }
                 }
-                pool.setCurrentFrame(pool.getCurrentFrame() + 1);
 
+                pool.setCurrentFrame(pool.getCurrentFrame() + 1);
                 if(timeout + timeoutBonus <= 0) {
                     writer.println("Initialize");
                     writer.flush();
                     output = "";
                 }
                 else {
+                   // System.out.println(pool.getCurrentFrame()+ "<---->"+output);
                     writer.println(output);
                     writer.flush();
                     output = "";
                 }
+
             }
             reader.close();
             writer.close();

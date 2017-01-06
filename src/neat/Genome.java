@@ -36,8 +36,7 @@ public class Genome {
 
     public static  Genome BasicGenome(){
         Genome g = new Genome();
-        int innovation = 1;
-        g.setMaxNeuron(Constants.INPUTS);
+        g.setMaxNeuron(Constants.INPUTS - 1);
         g.mutate();
         return g;
     }
@@ -68,7 +67,7 @@ public class Genome {
                 mutationRates.replace(entry.getKey(), 1.05263 * entry.getValue());
             }
         }
-        if((Math.random() < mutationRates.get("connection"))){
+        if((Math.random() < mutationRates.get("connections"))){
             pointMutate();
         }
         double tmp = mutationRates.get("link");
@@ -127,7 +126,7 @@ public class Genome {
             return;
         }
         int tmp;
-        if(neuron2 < Constants.INPUTS){
+        if(neuron2 <  Constants.INPUTS){
             tmp = neuron1;
             neuron1 = neuron2;
             neuron2 = tmp;
@@ -136,7 +135,7 @@ public class Genome {
         newLink.setInto(neuron1);
         newLink.setOut(neuron2);
         if(bias){
-            newLink.setInto(170);
+            newLink.setInto(Constants.INPUTS - 1);
         }
         if(containsLink(newLink)){
             return;
@@ -192,22 +191,22 @@ public class Genome {
     private int randomNeuron(boolean isNonInput){
         HashMap<Integer, Boolean> neurons = new HashMap<>();
         if(!isNonInput){
-            for(int i=1; i < Constants.INPUTS + 1; i++){
+            for(int i=0; i < Constants.INPUTS; i++){
                 neurons.put(i, true);
             }
         }
-        for(int o = 1; o < Constants.OUTPUTS + 1 ; o++){
+        for(int o = 0; o < Constants.OUTPUTS ; o++){
             neurons.put(Constants.MAX_NODES + o, true);
         }
         for(Gene g: genes){
-            if(!isNonInput || g.getInto() > Constants.INPUTS){
+            if(!isNonInput || g.getInto() > Constants.INPUTS - 1){
                 neurons.put(g.getInto(), true);
             }
-            if(!isNonInput || g.getOut() > Constants.INPUTS){
+            if(!isNonInput || g.getOut() > Constants.INPUTS - 1){
                 neurons.put(g.getOut(), true);
             }
         }
-        int n = (int) (Math.random() * neurons.size() + 1);
+        int n = (int) (Math.random() * neurons.size());
         for(int k :neurons.keySet()){
             n--;
             if(n == 0) return k;
@@ -216,13 +215,12 @@ public class Genome {
     }
 
     public void generateNetwork(){
-        for(int i=1; i< Constants.INPUTS + 1;i++){
+        for(int i=0; i< Constants.INPUTS;i++){
             network.put(i, new Neuron());
         }
-        for(int i=1; i< Constants.OUTPUTS + 1;i++){
+        for(int i=0; i< Constants.OUTPUTS;i++){
             network.put(Constants.MAX_NODES + i, new Neuron());
         }
-        Arrays.sort(genes.toArray());
         Collections.sort(genes, new Comparator<Gene>() {
             @Override
             public int compare(Gene o1, Gene o2) {
@@ -245,8 +243,8 @@ public class Genome {
 
     public String evaluateNetwork(String inputs){
         String[] parts = inputs.split(" ");
-        for(int i=1;i<Constants.INPUTS + 1;i++){
-            network.get(i).setValue(Integer.parseInt(parts[i-1]));
+        for(int i=0;i<Constants.INPUTS;i++){
+            network.get(i).setValue(Integer.parseInt(parts[i]));
         }
 
         Gene incoming;
@@ -254,7 +252,7 @@ public class Genome {
         double sum;
         for(Neuron n : network.values()){
             sum = 0;
-            for(int j = 1; j < n.getIncoming().size() ; j++){
+            for(int j = 0; j < n.getIncoming().size() ; j++){
                 incoming = n.getIncoming().get(j);
                 other = network.get(incoming.getInto());
                 sum += incoming.getWeight() * other.getValue();
@@ -266,7 +264,7 @@ public class Genome {
         }
 
         String result = "";
-        for(int o = 1; o <= Constants.OUTPUTS ; o++){
+        for(int o = 0; o < Constants.OUTPUTS ; o++){
             if(network.get(Constants.MAX_NODES + o).getValue() > 0){
                 result += o + " ";
             }
@@ -288,7 +286,7 @@ public class Genome {
             g2 = tmp;
         }
         Genome child = new Genome();
-        HashMap<Double, Gene> innovations = new HashMap<>();
+        HashMap<Integer, Gene> innovations = new HashMap<>();
         for(Gene g : g2.getGenes()){
             innovations.put(g.getInnovation(), g);
         }
@@ -312,23 +310,23 @@ public class Genome {
     }
 
     public static double disjoint(List<Gene> genes1, List<Gene> genes2){
-        HashMap<Double, Boolean> i1 = new HashMap<>();
+        HashMap<Integer, Boolean> i1 = new HashMap<>();
         for(Gene g : genes1){
             i1.put(g.getInnovation(), true);
         }
 
-        HashMap<Double, Boolean> i2 = new HashMap<>();
+        HashMap<Integer, Boolean> i2 = new HashMap<>();
         for(Gene g : genes2){
             i2.put(g.getInnovation(), true);
         }
         int disjointGenes = 0;
         for(Gene g : genes1){
-            if(!i2.get(g.getInnovation())){
+            if(i2.containsKey(g.getInnovation()) && !i2.get(g.getInnovation())){
                 disjointGenes++;
             }
         }
         for(Gene g : genes2){
-            if(!i1.get(g.getInnovation())){
+            if(i1.containsKey(g.getInnovation()) && !i1.get(g.getInnovation())){
                 disjointGenes++;
             }
         }
@@ -336,7 +334,7 @@ public class Genome {
     }
 
     public static double weights(List<Gene> genes1, List<Gene> genes2){
-        HashMap<Double, Gene> i2 = new HashMap<>();
+        HashMap<Integer, Gene> i2 = new HashMap<>();
         for(Gene g : genes2){
             i2.put(g.getInnovation(), g);
         }
