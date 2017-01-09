@@ -20,11 +20,9 @@ import java.util.LinkedList;
 public class CommunicationThread extends Thread {
     private LinkedList<InputListener> inputListeners = new LinkedList<>();
     private ServerSocket ss;
-    private boolean isRunning;
     private String output;
 
     public void run(){
-        isRunning = true;
         try {
             ss = new ServerSocket(2222);
             Socket client;
@@ -69,17 +67,23 @@ public class CommunicationThread extends Thread {
             int timeoutBonus;
             int measured;
             int total;
+            String inputMap;
             while(!"END".equals(input)){
                 input = reader.readLine();
-                notifyInputEvent(input);
-
+                parts = input.split(" ");
+                inputMap = input.substring(parts[0].length() + 1);
+                
                 species = pool.getSpecies().get(pool.getCurrentSpecies());
                 genome = species.getGenomes().get(pool.getCurrentGenome());
 
-                parts = input.split(" ");
+                
+                notifyInputEvent(inputMap, pool);
+               // System.out.println(input);
+                
+                
 
-                if(pool.getCurrentFrame() % 5== 0){
-                    output = pool.evaluateCurrent(input.substring(parts[0].length() + 1));
+                if(pool.getCurrentFrame() % 5 == 0){
+                    output = pool.evaluateCurrent(inputMap);
                 }
                 timeout--;
 
@@ -93,13 +97,14 @@ public class CommunicationThread extends Thread {
 
 
 
-
+                pool.setCurrentFitness(rightmost - pool.getCurrentFrame() / 2);
                 timeoutBonus = pool.getCurrentFrame() / 4;
                 if(timeout + timeoutBonus <= 0){ // ha lejart egy run
                     fitness = rightmost - pool.getCurrentFrame() / 2;
                     if(rightmost > 4816) fitness += 1000;
                     if(fitness == 0) fitness = -1;
                     genome.setFitness(fitness);
+                   
                     if(fitness > pool.getMaxFitness()){
                         pool.setMaxFitness(fitness);
                     }
@@ -163,8 +168,8 @@ public class CommunicationThread extends Thread {
         inputListeners.remove(il);
     }
 
-    public synchronized void notifyInputEvent(String surroundings) {
-        InputEvent ie = new InputEvent(this, surroundings);
+    public synchronized void notifyInputEvent(String surroundings, Pool g) {
+        InputEvent ie = new InputEvent(this, surroundings, g);
         for(InputListener il:inputListeners) {
             il.input(ie);
         }

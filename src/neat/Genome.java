@@ -34,9 +34,9 @@ public class Genome {
         mutationRates.put("step", Constants.STEP_SIZE);
     }
 
-    public static  Genome BasicGenome(){
+    public static Genome BasicGenome(){
         Genome g = new Genome();
-        g.setMaxNeuron(Constants.INPUTS - 1);
+        g.setMaxNeuron(Constants.INPUTS);
         g.mutate();
         return g;
     }
@@ -122,20 +122,20 @@ public class Genome {
         int neuron1 = randomNeuron(false);
         int neuron2 = randomNeuron(true);
         Gene newLink = new Gene();
-        if(neuron1 < Constants.INPUTS && neuron2 < Constants.INPUTS){
+        if(neuron1 <= Constants.INPUTS && neuron2 <= Constants.INPUTS){
             return;
         }
         int tmp;
-        if(neuron2 <  Constants.INPUTS){
+        if(neuron2 <= Constants.INPUTS){
             tmp = neuron1;
             neuron1 = neuron2;
             neuron2 = tmp;
         }
-
+        
         newLink.setInto(neuron1);
         newLink.setOut(neuron2);
         if(bias){
-            newLink.setInto(Constants.INPUTS - 1);
+            newLink.setInto(Constants.INPUTS);
         }
         if(containsLink(newLink)){
             return;
@@ -148,7 +148,7 @@ public class Genome {
     private void nodeMutate(){
         if(genes.isEmpty()) return;
         maxNeuron++;
-        Gene gene = genes.get((int) (Math.random()*genes.size()));
+        Gene gene = genes.get((int) (Math.random()*(genes.size()-1)));
         if(!gene.isEnabled()){
             return;
         }
@@ -175,7 +175,7 @@ public class Genome {
             }
         }
         if(candidates.isEmpty()) return;
-        Gene g = candidates.get((int) (Math.random() * candidates.size()));
+        Gene g = candidates.get((int) (Math.random() * (candidates.size()-1)));
         g.setEnabled(!g.isEnabled());
     }
 
@@ -191,22 +191,22 @@ public class Genome {
     private int randomNeuron(boolean isNonInput){
         HashMap<Integer, Boolean> neurons = new HashMap<>();
         if(!isNonInput){
-            for(int i=0; i < Constants.INPUTS; i++){
+            for(int i=1; i <= Constants.INPUTS; i++){
                 neurons.put(i, true);
             }
         }
-        for(int o = 0; o < Constants.OUTPUTS ; o++){
+        for(int o = 1; o <= Constants.OUTPUTS ; o++){
             neurons.put(Constants.MAX_NODES + o, true);
         }
         for(Gene g: genes){
-            if(!isNonInput || g.getInto() > Constants.INPUTS - 1){
+            if(!isNonInput || g.getInto() > Constants.INPUTS){
                 neurons.put(g.getInto(), true);
             }
-            if(!isNonInput || g.getOut() > Constants.INPUTS - 1){
+            if(!isNonInput || g.getOut() > Constants.INPUTS){
                 neurons.put(g.getOut(), true);
             }
         }
-        int n = (int) (Math.random() * neurons.size());
+        int n = (int) (Math.random() * (neurons.size()-1)) + 1;
         for(int k :neurons.keySet()){
             n--;
             if(n == 0) return k;
@@ -215,10 +215,10 @@ public class Genome {
     }
 
     public void generateNetwork(){
-        for(int i=0; i< Constants.INPUTS;i++){
+        for(int i=1; i<= Constants.INPUTS;i++){
             network.put(i, new Neuron());
         }
-        for(int i=0; i< Constants.OUTPUTS;i++){
+        for(int i=1; i <= Constants.OUTPUTS;i++){
             network.put(Constants.MAX_NODES + i, new Neuron());
         }
         Collections.sort(genes, new Comparator<Gene>() {
@@ -243,8 +243,8 @@ public class Genome {
 
     public String evaluateNetwork(String inputs){
         String[] parts = inputs.split(" ");
-        for(int i=0;i<Constants.INPUTS;i++){
-            network.get(i).setValue(Integer.parseInt(parts[i]));
+        for(int i=0;i<Constants.INPUTS -1;i++){
+            network.get(i+1).setValue(Integer.parseInt(parts[i]));
         }
 
         Gene incoming;
@@ -264,7 +264,7 @@ public class Genome {
         }
 
         String result = "";
-        for(int o = 0; o < Constants.OUTPUTS ; o++){
+        for(int o = 1; o <= Constants.OUTPUTS ; o++){
             if(network.get(Constants.MAX_NODES + o).getValue() > 0){
                 result += o + " ";
             }
@@ -272,7 +272,7 @@ public class Genome {
         return result;
     }
 
-    private double sigmoid(double x){
+    public static double sigmoid(double x){
         double result = 2;
         result /= (1 + Math.exp(-4.9*x));
         result -= 1;

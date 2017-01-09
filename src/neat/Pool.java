@@ -14,7 +14,9 @@ public class Pool {
     private int currentSpecies;
     private int currentGenome;
     private int currentFrame;
-    private double maxFitness;
+    private double currentFitness;
+    
+  	private double maxFitness;
 
     public Pool(){
         species = new ArrayList<>();
@@ -42,6 +44,8 @@ public class Pool {
             }
         }
         if(!foundSpecies){
+        	
+        	System.out.println("--------Uj faj----------------------------------------------("+species.size()+")----------------");
             Species s = new Species();
             s.getGenomes().add(g);
             species.add(s);
@@ -91,14 +95,18 @@ public class Pool {
     }
 
     public void newGeneration(){
+    	System.out.println("elso cull elott size" + species.size());
         cullSpecies(false);
+        System.out.println("elso cull utan size" + species.size());
         rankGlobally();
         removeStaleSpecies();
+        System.out.println(" stale remove utan size" + species.size());
         rankGlobally();
         for(Species s : species){
             s.calculateAverageFitness();
         }
         removeWeakSpecies();
+        System.out.println("weak remove utan" + species.size());
         double sum = totalAverageFitness();
         double breed;
         List<Genome> children = new ArrayList<>();
@@ -108,9 +116,12 @@ public class Pool {
                 children.add(s.breedChild());
             }
         }
+        System.out.println("breed utan" + species.size());
         cullSpecies(true);
+        System.out.println("msodik cull utan" + species.size());
+       
         while(children.size() + species.size() < Constants.POPULATION){
-            children.add(species.get((int) (Math.random()*species.size())).breedChild());
+            children.add(species.get((int) (Math.random()*(species.size()-1))).breedChild());
         }
         for(Genome g : children){
             addToSpecies(g);
@@ -134,19 +145,25 @@ public class Pool {
         Comparator<Genome> comparator = new Comparator<Genome>() {
             @Override
             public int compare(Genome o1, Genome o2) {
-                return ((Double)o2.getFitness()).compareTo(o1.getFitness());
+                return ((Double)o1.getFitness()).compareTo(o2.getFitness());
             }
         };
         double remaining;
+        int size;
+        int i=0;
         for(Species s : species){
             Collections.sort(s.getGenomes(), comparator);
             remaining = Math.ceil(s.getGenomes().size()/2);
             if(toOne){
                 remaining = 1;
             }
-            while(s.getGenomes().size() > remaining){
+            size = s.getGenomes().size();
+            System.out.println(i++ + "species cull , genmsize before" + size);
+            while(size-1 > remaining){
                 s.getGenomes().remove(0);
+                size = s.getGenomes().size();
             }
+            System.out.println(i++ + "species cull , genmsize after" + size);
         }
     }
 
@@ -154,12 +171,13 @@ public class Pool {
         Comparator<Genome> comparator = new Comparator<Genome>() {
             @Override
             public int compare(Genome o1, Genome o2) {
-                return ((Double)o2.getFitness()).compareTo(o1.getFitness());
+                return ((Double)o1.getFitness()).compareTo(o2.getFitness());
             }
         };
         List<Species> survived = new ArrayList<>();
         for(Species s : species){
             Collections.sort(s.getGenomes(), comparator);
+           // System.out.println(species.size() + "Genome size" + s.getGenomes().size());
             if(s.getGenomes().get(0).getFitness() > s.getTopFitness()){
                 s.setTopFitness(s.getGenomes().get(0).getFitness());
                 s.setStaleness(0);
@@ -167,7 +185,7 @@ public class Pool {
             else{
                 s.setStaleness(s.getStaleness() + 1);
             }
-            if(s.getStaleness() < Constants.STALE_SPECIES || s.getTopFitness() >= maxFitness){
+            if(s.getStaleness() < Constants.STALE_SPECIES || s.getTopFitness() > maxFitness){
                 survived.add(s);
             }
         }
@@ -239,4 +257,12 @@ public class Pool {
     public void setMaxFitness(double maxFitness) {
         this.maxFitness = maxFitness;
     }
+    
+    public double getCurrentFitness() {
+  		return currentFitness;
+  	}
+
+  	public void setCurrentFitness(double fitness) {
+  		this.currentFitness = fitness;
+  	}
 }

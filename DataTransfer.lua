@@ -168,9 +168,10 @@ local socket = require("socket")
 local host = "127.0.0.1"
 local port = 2222
 local sock = assert(socket.connect(host, port))
-sock:settimeout(10)
+sock:settimeout(5)
+clearJoypad()
 while true do
-	clearJoypad()
+	
 	toSend = ""
 
 	inputs = getInputs()
@@ -185,6 +186,7 @@ while true do
 	
 	if response == "Initialize" then
 		savestate.load(Filename);
+		clearJoypad()
 	else
 		for token in string.gmatch(response, "[^%s]+") do
 			controller["P1 " .. ButtonNames[tonumber(token)]] = true

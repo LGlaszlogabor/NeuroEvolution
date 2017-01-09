@@ -32,12 +32,12 @@ public class Species {
     public Genome breedChild(){
         Genome g1, g2, child;
         if(Math.random() < Constants.CROSSOVER_CHANCE){
-            g1 = genomes.get((int) (Math.random()*genomes.size()));
-            g2 = genomes.get((int) (Math.random()*genomes.size()));
+            g1 = genomes.get((int) (Math.random()*(genomes.size()-1)));
+            g2 = genomes.get((int) (Math.random()*(genomes.size()-1)));
             child = Genome.crossover(g1, g2);
         }
         else{
-            g1 = genomes.get((int) (Math.random()*genomes.size()));
+            g1 = genomes.get((int) (Math.random()*(genomes.size()-1)));
             child = g1.copy();
         }
 

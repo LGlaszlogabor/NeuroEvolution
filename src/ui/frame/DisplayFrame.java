@@ -9,7 +9,9 @@ import javax.swing.*;
  */
 public class DisplayFrame extends JFrame {
 
-    public DisplayFrame(){
+	private static final long serialVersionUID = 1L;
+
+	public DisplayFrame(){
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         add(new DisplayPanel());
         setBounds(100,100,680,680);
