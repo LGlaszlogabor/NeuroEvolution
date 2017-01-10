@@ -11,14 +11,14 @@ public class Constants {
     public static final double DELTA_WEIGHTS = 0.4;
     public static final double DELTA_THRESHOLD = 1.0;
 
-    public static final double PERTIRB_CHANCE = 0.95;//0.90
+    public static final double PERTIRB_CHANCE = 0.90;//0.90
     public static final double CROSSOVER_CHANCE = 0.85;
-    public static final double MUTATE_CONNECTIONS_CHANCE = 0.22; //0.25
+    public static final double MUTATE_CONNECTIONS_CHANCE = 0.25; //0.25
     public static final double MUTATE_LINK_CHANCE = 2.0; //2
-    public static final double MUTATE_BIAS_CHANCE = 0.5;//0.4
-    public static final double MUTATE_NODE_CHANCE = 0.7; //0.5
-    public static final double MUTATE_ENABLE_CHANCE = 0.3;//0.3
-    public static final double MUTATE_DISABLE_CHANCE = 0.5;//0.4
+    public static final double MUTATE_BIAS_CHANCE = 0.4;//0.4
+    public static final double MUTATE_NODE_CHANCE = 0.5; //0.5
+    public static final double MUTATE_ENABLE_CHANCE = 0.2;//0.2
+    public static final double MUTATE_DISABLE_CHANCE = 0.4;//0.4
     public static final double STEP_SIZE = 0.1;
     public static final int STALE_SPECIES = 13; //15
 

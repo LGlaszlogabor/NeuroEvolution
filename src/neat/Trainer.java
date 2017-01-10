@@ -11,7 +11,7 @@ public class Trainer {
     public Trainer(){
         p = new Pool();
         p.initializePool("");
-        timeout = Constants.TIMEOUT
+        timeout = Constants.TIMEOUT;
     }
 
     public void runSilmulation(){

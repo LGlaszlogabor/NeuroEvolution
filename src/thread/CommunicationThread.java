@@ -30,6 +30,34 @@ public class CommunicationThread extends Thread {
             OutputStream out = null;
             BufferedReader reader;
             PrintWriter writer;
+            Pool pool = new Pool();
+            String initialState = "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                    "0 0 0 0 0 0 0 0 0 0 0 0 0 ";
+            pool.initializePool(initialState);
+            notifyInputEvent(initialState, pool);
+            int timeout = Constants.TIMEOUT;
+            Species species;
+            Genome genome;
+            int rightmost = 0;
+            String[] parts;
+            int marioX;
+            double fitness;
+            int timeoutBonus;
+            int measured;
+            int total;
+            String inputMap;
+
             client = ss.accept();
             output = "";
             try {
@@ -42,116 +70,78 @@ public class CommunicationThread extends Thread {
             reader = new BufferedReader(new InputStreamReader(in));
             writer = new PrintWriter(new OutputStreamWriter(out));
             String input = "";
-
-            Pool pool = new Pool();
-            pool.initializePool("0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                "0 0 0 0 0 0 0 0 0 0 0 0 0 ");
-            int timeout = Constants.TIMEOUT;
-            Species species;
-            Genome genome;
-            int rightmost = 0;
-            String[] parts;
-            int marioX;
-            double fitness;
-            int timeoutBonus;
-            int measured;
-            int total;
-            String inputMap;
             while(!"END".equals(input)){
-                input = reader.readLine();
-                parts = input.split(" ");
-                inputMap = input.substring(parts[0].length() + 1);
-                
-                species = pool.getSpecies().get(pool.getCurrentSpecies());
-                genome = species.getGenomes().get(pool.getCurrentGenome());
-
-                
-                notifyInputEvent(inputMap, pool);
-               // System.out.println(input);
-                
-                
-
-                if(pool.getCurrentFrame() % 5 == 0){
-                    output = pool.evaluateCurrent(inputMap);
-                }
-                timeout--;
+                if(pool.isRunning()) {
 
 
-                marioX = Integer.parseInt(parts[0]);
-                if (marioX > rightmost) {
-                    rightmost = marioX;
-                    timeout = Constants.TIMEOUT;
-                }
+                    input = reader.readLine();
+                    parts = input.split(" ");
+                    inputMap = input.substring(parts[0].length() + 1);
+
+                    species = pool.getSpecies().get(pool.getCurrentSpecies());
+                    genome = species.getGenomes().get(pool.getCurrentGenome());
 
 
+                    notifyInputEvent(inputMap, pool);
+                    // System.out.println(input);
 
 
-                pool.setCurrentFitness(rightmost - pool.getCurrentFrame() / 2);
-                timeoutBonus = pool.getCurrentFrame() / 4;
-                if(timeout + timeoutBonus <= 0){ // ha lejart egy run
-                    fitness = rightmost - pool.getCurrentFrame() / 2;
-                    if(rightmost > 4816) fitness += 1000;
-                    if(fitness == 0) fitness = -1;
-                    genome.setFitness(fitness);
-                   
-                    if(fitness > pool.getMaxFitness()){
-                        pool.setMaxFitness(fitness);
+                    if (pool.getCurrentFrame() % 5 == 0) {
+                        output = pool.evaluateCurrent(inputMap);
                     }
-                    pool.setCurrentSpecies(0);
-                    pool.setCurrentGenome(0);
-                    while(pool.fitnessAreadyMeasured()){
-                       pool.nextGenome();
+                    timeout--;
+
+
+                    marioX = Integer.parseInt(parts[0]);
+                    if (marioX > rightmost) {
+                        rightmost = marioX;
+                        timeout = Constants.TIMEOUT;
                     }
-                    pool.initializeRun("0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
-                                       "0 0 0 0 0 0 0 0 0 0 0 0 0 ");
-                    rightmost = 0;
-                }
-                measured = 0;
-                total = 0;
-                for(Species s : pool.getSpecies()){
-                    for(Genome g : s.getGenomes()){
-                        total++;
-                        if(g.getFitness() != 0){
-                            measured++;
+
+
+                    pool.setCurrentFitness(rightmost - pool.getCurrentFrame() / 2);
+                    timeoutBonus = pool.getCurrentFrame() / 4;
+                    if (timeout + timeoutBonus <= 0) { // ha lejart egy run
+                        fitness = rightmost - pool.getCurrentFrame() / 2;
+                        if (rightmost > 4816) fitness += 1000;
+                        if (fitness == 0) fitness = -1;
+                        genome.setFitness(fitness);
+
+                        if (fitness > pool.getMaxFitness()) {
+                            pool.setMaxFitness(fitness);
+                            pool.exportToFile("Save" + pool.getGeneration() + ".save");
+                        }
+                        pool.setCurrentSpecies(0);
+                        pool.setCurrentGenome(0);
+                        while (pool.fitnessAreadyMeasured()) {
+                            pool.nextGenome();
+                        }
+                        pool.initializeRun(initialState);
+                        rightmost = 0;
+                    }
+                    measured = 0;
+                    total = 0;
+                    for (Species s : pool.getSpecies()) {
+                        for (Genome g : s.getGenomes()) {
+                            total++;
+                            if (g.getFitness() != 0) {
+                                measured++;
+                            }
                         }
                     }
-                }
 
-                pool.setCurrentFrame(pool.getCurrentFrame() + 1);
-                if(timeout + timeoutBonus <= 0) {
-                    writer.println("Initialize");
-                    writer.flush();
-                    output = "";
+                    pool.setCurrentFrame(pool.getCurrentFrame() + 1);
+                    if (timeout + timeoutBonus <= 0) {
+                        writer.println("Initialize");
+                        writer.flush();
+                        output = "";
+                    } else {
+                        // System.out.println(pool.getCurrentFrame()+ "<---->"+output);
+                        writer.println(output);
+                        writer.flush();
+                        output = "";
+                    }
                 }
-                else {
-                   // System.out.println(pool.getCurrentFrame()+ "<---->"+output);
-                    writer.println(output);
-                    writer.flush();
-                    output = "";
-                }
-
             }
             reader.close();
             writer.close();

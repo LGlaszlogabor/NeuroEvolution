@@ -11,7 +11,10 @@ import util.Cell;
 import util.Constants;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
@@ -29,24 +32,58 @@ public class DisplayPanel extends JPanel implements InputListener, KeyListener {
     private int[] surroundings = new int[169];
     private Pool pool;
     private boolean displayNetwork;
+	private JButton loadButton, saveButton;
     
 
     public DisplayPanel(){
-    	displayNetwork = false;
+		loadButton = new JButton("Load");
+		saveButton = new JButton("Save");
+    	loadButton.setBounds(400,500,100,30);
+		loadButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				pool.setRunning(false);
+				JFileChooser chooser = new JFileChooser();
+				FileNameExtensionFilter filter = new FileNameExtensionFilter(
+						"Save files", "save");
+				chooser.setFileFilter(filter);
+				int returnVal = chooser.showOpenDialog(DisplayPanel.this);
+				if(returnVal == JFileChooser.APPROVE_OPTION) {
+					System.out.println("You chose to open this file: " +
+							chooser.getSelectedFile().getName());
+					pool.importFromFile(chooser.getSelectedFile().getName());
+				}
+				pool.setRunning(true);
+			}
+		});
+    	saveButton.setBounds(400,550,100,30);
+		saveButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				pool.exportToFile("custom"+pool.getGeneration()+".save");
+			}
+		});
+		displayNetwork = false;
         setLayout(null);
         setBounds(0,0,680,680);
        // addKeyListener(this);
         reader = new CommunicationThread();
         reader.addInputListener(this);
         reader.start();
-        setFocusable(true);
+
+		add(saveButton);
+
+		add(loadButton);
+		setFocusable(true);
         setVisible(true);
     }
 
     @Override
     public void paint(Graphics g){
-        g.setColor(Color.white);
-        g.fillRect(0,0,680,680);
+		super.paint(g);
+		g.setColor(Color.white);
+        g.fillRect(0,0,680,450);
+
         g.setColor(Color.black);
         g.drawRect(50, 50, 260, 260);
         
@@ -133,7 +170,7 @@ public class DisplayPanel extends JPanel implements InputListener, KeyListener {
 	        for(Gene gene : toDisplay.getGenes()){
 	        	if(gene.isEnabled()){
 	        		c1 = cells.get(gene.getInto());
-	        		c2 = cells.get(gene.getOut());	        	
+	        		c2 = cells.get(gene.getOut());
 	        		if (c1.getValue() == 0){
 	        			if (gene.getWeight() > 0){ 
 		        			c = new Color(255,0,0,255);
@@ -167,30 +204,27 @@ public class DisplayPanel extends JPanel implements InputListener, KeyListener {
 	    	g.drawChars(tmp.toCharArray(), 0, tmp.length(), 200, 420);
 	    	// g.drawRect(49,71,2,7);
     	}
-    	for(int i=0;i<13;i++){
-            for(int j=0;j<13;j++){
-               if(surroundings[i*13+j] == 1){
-                   g.setColor(Color.black);    
-                   g.drawRect(50+j*20, 50+i*20, 20, 20);
-                   g.fillRect(50+j*20+8, 50+i*20+8, 4, 4);
-               }
-               else if(surroundings[i*13+j] == -1){
-                    g.setColor(Color.red); 
-                    g.drawRect(50+j*20, 50+i*20, 20, 20);
-                    g.fillRect(50+j*20+8, 50+i*20+8, 4, 4);
-                }
-               if(j==6 && (i==7)){
-                   g.setColor(Color.blue);  
-                   g.drawRect(50+j*20, 50+i*20, 20, 20);
-                   g.fillRect(50+j*20+8, 50+i*20+8, 4, 4);
-               }
-               else{
-            	   g.setColor(new Color(0,0,0, 20));  
-            	   g.drawRect(50+j*20, 50+i*20, 20, 20);
-               }               
-            }
-        }
-    	
+    	for(int i=0;i<13;i++) {
+			for (int j = 0; j < 13; j++) {
+				if (surroundings[i * 13 + j] == 1) {
+					g.setColor(Color.black);
+					g.drawRect(50 + j * 20, 50 + i * 20, 20, 20);
+					g.fillRect(50 + j * 20 + 8, 50 + i * 20 + 8, 4, 4);
+				} else if (surroundings[i * 13 + j] == -1) {
+					g.setColor(Color.red);
+					g.drawRect(50 + j * 20, 50 + i * 20, 20, 20);
+					g.fillRect(50 + j * 20 + 8, 50 + i * 20 + 8, 4, 4);
+				}
+				if (j == 6 && (i == 7)) {
+					g.setColor(Color.blue);
+					g.drawRect(50 + j * 20, 50 + i * 20, 20, 20);
+					g.fillRect(50 + j * 20 + 8, 50 + i * 20 + 8, 4, 4);
+				} else {
+					g.setColor(new Color(0, 0, 0, 20));
+					g.drawRect(50 + j * 20, 50 + i * 20, 20, 20);
+				}
+			}
+		}
     }
     
     @Override

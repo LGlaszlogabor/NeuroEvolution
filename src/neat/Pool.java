@@ -2,6 +2,7 @@ package neat;
 
 import util.Constants;
 
+import java.io.*;
 import java.util.*;
 
 /**
@@ -15,6 +16,7 @@ public class Pool {
     private int currentGenome;
     private int currentFrame;
     private double currentFitness;
+    private boolean running;
     
   	private double maxFitness;
 
@@ -33,6 +35,7 @@ public class Pool {
             addToSpecies(Genome.BasicGenome());
         }
         initializeRun(inputs);
+        running = true;
     }
 
     private void addToSpecies(Genome g){
@@ -65,10 +68,10 @@ public class Pool {
 
     public void nextGenome(){
         currentGenome++;
-        if(currentGenome >= species.get(currentSpecies).getGenomes().size()){
+        if(currentGenome > species.get(currentSpecies).getGenomes().size() - 1){
             currentGenome = 0;
             currentSpecies++;
-            if(currentSpecies >= species.size()){
+            if(currentSpecies > species.size() - 1){
                 newGeneration();
                 currentSpecies = 0;
             }
@@ -171,7 +174,7 @@ public class Pool {
         Comparator<Genome> comparator = new Comparator<Genome>() {
             @Override
             public int compare(Genome o1, Genome o2) {
-                return ((Double)o1.getFitness()).compareTo(o2.getFitness());
+                return ((Double)o2.getFitness()).compareTo(o1.getFitness());
             }
         };
         List<Species> survived = new ArrayList<>();
@@ -208,6 +211,111 @@ public class Pool {
     public static int getInnovation(){
         innovation++;
         return innovation;
+    }
+
+    public void exportToFile(String filename){
+        try {
+            FileWriter fw = new FileWriter(filename);
+            fw.write(generation + "\n");
+            fw.write(maxFitness + "\n");
+            fw.write(species.size() + "\n");
+            for(Species s : species){
+                fw.write(s.getTopFitness() + "\n");
+                fw.write(s.getStaleness() + "\n");
+                fw.write(s.getGenomes().size() + "\n");
+                for(Genome g : s.getGenomes()){
+                    fw.write(g.getFitness() + "\n");
+                    fw.write(g.getMaxNeuron() + "\n");
+                    for (Map.Entry<String, Double> entry : g.getMutationRates().entrySet()) {
+                        fw.write(entry.getKey() + "\n");
+                        fw.write(entry.getValue() + "\n");
+                    }
+                    fw.write(g.getGenes().size() + "\n");
+                    for(Gene gene : g.getGenes()) {
+                        fw.write(gene.getInto() + "\n");
+                        fw.write(gene.getOut() + "\n");
+                        fw.write(gene.getWeight() + "\n");
+                        fw.write(gene.getInnovation() + "\n");
+                        if(gene.isEnabled()){
+                            fw.write("1\n");
+                        }
+                        else{
+                            fw.write("0\n");
+                        }
+                    }
+                }
+            }
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void importFromFile(String filename){
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(filename));
+            generation = Integer.parseInt(br.readLine());
+            maxFitness = Double.parseDouble(br.readLine());
+            species = new ArrayList<>();
+            List<Genome> tmpGenomes = new ArrayList<>();
+            List<Gene> tmpGenes = new ArrayList<>();
+            int speciesSize = Integer.parseInt(br.readLine()), genomeSize, geneSize;
+            Species tmpSpecies;
+            Genome tmpGenome;
+            Gene tmpGene;
+            for(int i=0;i<speciesSize;i++){
+                tmpSpecies = new Species();
+                tmpSpecies.setTopFitness(Double.parseDouble(br.readLine()));
+                tmpSpecies.setStaleness(Double.parseDouble(br.readLine()));
+                genomeSize = Integer.parseInt(br.readLine());
+                for(int j=0;j<genomeSize;j++){
+                    tmpGenome = new Genome();
+                    tmpGenome.setFitness(Double.parseDouble(br.readLine()));
+                    tmpGenome.setMaxNeuron(Integer.parseInt(br.readLine()));
+                    for (Map.Entry<String, Double> entry : tmpGenome.getMutationRates().entrySet()) {
+                        tmpGenome.getMutationRates().replace(br.readLine(), Double.parseDouble(br.readLine()));
+                    }
+                    geneSize = Integer.parseInt(br.readLine());
+                    for(int k=0;k<geneSize;k++){
+                        tmpGene = new Gene();
+                        tmpGene.setInto(Integer.parseInt(br.readLine()));
+                        tmpGene.setOut(Integer.parseInt(br.readLine()));
+                        tmpGene.setWeight(Double.parseDouble(br.readLine()));
+                        tmpGene.setInnovation(Integer.parseInt(br.readLine()));
+                        if(1 == Integer.parseInt(br.readLine())){
+                            tmpGene.setEnabled(true);
+                        }else{
+                            tmpGene.setEnabled(false);
+                        }
+                        tmpGenes.add(tmpGene);
+                    }
+                    tmpGenome.setGenes(tmpGenes);
+                    tmpGenomes.add(tmpGenome);
+                }
+                tmpSpecies.setGenomes(tmpGenomes);
+                species.add(tmpSpecies);
+            }
+            br.close();
+            while(fitnessAreadyMeasured()){
+                nextGenome();
+            }
+            initializeRun("0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 " +
+                          "0 0 0 0 0 0 0 0 0 0 0 0 0 ");
+            currentFrame++;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public List<Species> getSpecies() {
@@ -265,4 +373,12 @@ public class Pool {
   	public void setCurrentFitness(double fitness) {
   		this.currentFitness = fitness;
   	}
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
 }
